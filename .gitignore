@@ -1,0 +1,17 @@
+
+# Playwright
+src
+node_modules/
+test-results/
+eslint.config.mjs
+blob-report/
+playwright-report/
+playwright/.cache/
+allure-results/
+allure-report/
+.allure
+out/
+.vscode
+.prettierignore
+.prettierrc
+
