@@ -1,0 +1,25 @@
+stages:
+    - Tests # Launch api tests
+    
+api-tests:
+    stage: Tests
+    image: mcr.microsoft.com/playwright:v1.51.0-noble
+    allow_failure: true 
+    
+    before_script: # Prepare environment
+        - npm i
+        - npx playwright install --with-deps
+    
+    script: # Run tests
+        - npm t
+    
+    after_script: # Form a report-link 
+        - echo "Allure-report lives here - https://${CI_PROJECT_NAMESPACE}.${CI_PAGES_DOMAIN}/-/${CI_PROJECT_NAME}/-/jobs/${CI_JOB_ID}/artifacts/allure-report/awesome/index.html"
+    
+    artifacts: # Save results after tests
+        when: always
+        paths:
+            - ./playwright-report
+            - ./allure-results
+            - ./allure-report
+        expire_in: 3d   
