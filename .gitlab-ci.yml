@@ -1,25 +1,46 @@
+workflow:
+    # Workflow starts on the events PUSH or PULL REQUEST
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+
+
 stages:
     - Tests # Launch api tests
-    
-api-tests:
+    - Pages # Generapage a page for report
+
+
+run api-tests:
     stage: Tests
     image: mcr.microsoft.com/playwright:v1.51.0-noble
-    allow_failure: true 
+    allow_failure: true # Letting job fail & go to the next job
     
     before_script: # Prepare environment
         - npm i
-        - npx playwright install --with-deps
-    
-    script: # Run tests
-        - npm t
-    
-    after_script: # Form a report-link 
-        - echo "Allure-report lives here - https://${CI_PROJECT_NAMESPACE}.${CI_PAGES_DOMAIN}/-/${CI_PROJECT_NAME}/-/jobs/${CI_JOB_ID}/artifacts/allure-report/awesome/index.html"
-    
+        - npx playwright install --with-deps   
+    script: 
+        - npm t # Run tests & generate allure-report
+    after_script: # Create allure-report link 
+        - echo "Allure-report lives here - https://${CI_PROJECT_NAMESPACE}.${CI_PAGES_DOMAIN}/-/${CI_PROJECT_NAME}/-/jobs/${CI_JOB_ID}/artifacts/allure-report/awesome/index.html" # Show a direct link in output console with the allure-report results
+
     artifacts: # Save results after tests
-        when: always
+        when: on_success
+        expire_in: 3d    
         paths:
             - ./playwright-report
-            - ./allure-results
             - ./allure-report
-        expire_in: 3d   
+
+
+pages:
+    stage: Pages
+    image: alpine
+    script:
+        - mkdir -p public # Create "public" folder
+        - cp -r ./allure-report/awesome/* public/ # Copy all data from "allure-report" folder into "public" folder
+        - echo "Report is published" # Say Report is published in the console
+    artifacts:
+        when: always
+        expire_in: 21 days
+        paths:
+            - ./public
+    only:
+        - main
